@@ -1,9 +1,9 @@
 {
-  "name": "ports-badminton-hub",
+  "name": "portsmouth-badminton-hub",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://jerilkuruvilawork.github.io/ports-badminton-hub",
+  "homepage": "https://jerilkuruvilawork.github.io/portsmouth-badminton-hub",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

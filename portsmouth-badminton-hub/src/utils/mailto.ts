@@ -5,8 +5,8 @@ export function buildSessionsMailto(options: {
   reporterEmail?: string;
 }): string {
   const subject = options.sessionName
-    ? `${options.sessionName} — update for Ports Badminton Hub`
-    : "Ports Badminton Hub — correction or new session";
+    ? `${options.sessionName} — update for Portsmouth Badminton Hub`
+    : "Portsmouth Badminton Hub — correction or new session";
 
   const lines = [
     "Please describe what should change (time, venue, price, shuttle type, contact, etc.):",

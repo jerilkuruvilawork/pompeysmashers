@@ -1,4 +1,4 @@
-name: Deploy Ports Badminton Hub
+name: Deploy Portsmouth Badminton Hub
 
 on:
   push:
