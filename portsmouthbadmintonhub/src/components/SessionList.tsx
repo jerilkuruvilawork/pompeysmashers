@@ -189,18 +189,18 @@ export default function SessionList() {
           </label>
 
           <label>
-            Shuttles
+            Shuttle type
             <select
               value={filters.shuttle}
               onChange={(e) =>
                 patchFilters({ shuttle: e.target.value as SessionFilters["shuttle"] })
               }
             >
-              <option value="all">Any</option>
+              <option value="all">Any shuttle type</option>
               <option value="plastic">Plastic (confirmed)</option>
-              <option value="no-strings">No Strings sessions</option>
+              <option value="no-strings">No Strings (usually plastic)</option>
               <option value="feather">Feather (confirmed)</option>
-              <option value="not-stated">Not stated — ask club</option>
+              <option value="not-stated">Type not listed — ask club</option>
             </select>
           </label>
 

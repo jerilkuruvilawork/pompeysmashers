@@ -11,8 +11,9 @@ export default function App() {
         <h1>{SITE_NAME}</h1>
         <p className="hero__tagline">{SITE_TAGLINE}</p>
         <p className="hero__note">
-          Filter by area, player level, shuttles (plastic / feather / No Strings), session type, and
-          format. Times change — confirm with each club before you travel.
+          Filter by area, player level, shuttle type (plastic / feather / No Strings), session
+          type, and format. If shuttle type is not listed for a session, contact the club before
+          you travel — times and prices change too.
         </p>
         <p className="hero__contact">
           Wrong info?{" "}

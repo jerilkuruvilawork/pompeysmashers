@@ -43,10 +43,10 @@ export const DAY_ORDER: DayOfWeek[] = [
 ];
 
 export const SHUTTLE_LABELS: Record<ShuttleType, string> = {
-  plastic: "Plastic (confirmed)",
-  feather: "Feather (confirmed)",
-  "no-strings": "No Strings (usually plastic)",
-  unknown: "Not stated — ask the club",
+  plastic: "Shuttles: plastic (confirmed)",
+  feather: "Shuttles: feather (confirmed)",
+  "no-strings": "Shuttles: No Strings (usually plastic)",
+  unknown: "Shuttles: type not listed — ask the club",
 };
 
 export const badmintonSessions: BadmintonSession[] = [
