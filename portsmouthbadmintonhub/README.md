@@ -4,20 +4,16 @@ Community directory of pay-and-play and social badminton sessions around Portsmo
 
 **Live site:** [https://jerilkuruvilawork.github.io/portsmouthbadmintonhub/](https://jerilkuruvilawork.github.io/portsmouthbadmintonhub/)
 
-## Correction form (email hidden from visitors)
+## Correction form
 
-Visitors use the on-site form. Your email is **not** in the code.
+Visitors use the on-site form. The maintainer email is in `src/config.ts` (for delivery only) and is **not shown on the page**.
 
-1. Sign up at [Web3Forms](https://web3forms.com) and create an access key (your email stays in their dashboard).
-2. **Local:** copy `.env.example` to `.env` and set `VITE_WEB3FORMS_ACCESS_KEY`.
-3. **GitHub Pages:** in repo **Settings → Secrets and variables → Actions**, add secret **`WEB3FORMS_ACCESS_KEY`** with the same value.
-4. Rebuild / push to `main` so the deploy workflow picks up the secret.
+The first time someone submits, [FormSubmit](https://formsubmit.co) may email you a one-time activation link — click it once.
 
 ## Run locally
 
 ```bash
 npm install
-cp .env.example .env   # then add your Web3Forms key
 npm run dev
 ```
 
