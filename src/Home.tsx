@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 function Home() {
   return (
     <div>
@@ -20,6 +22,10 @@ function Home() {
         <li>Thursday: 8:00 PM – 10:00 PM</li>
         <li>Sunday : 9:00 AM – 11:00 AM</li>
       </ul>
+      <p>
+        Looking for other clubs and pay-and-play sessions nearby? See our{" "}
+        <Link to="/sessions">Portsmouth area sessions directory</Link> — you can suggest corrections by email.
+      </p>
     </div>
   )
 }
