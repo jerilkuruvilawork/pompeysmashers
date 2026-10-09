@@ -389,6 +389,16 @@ a:hover {
   color: #616161;
 }
 
+.feedback-form__error {
+  color: #b91c1c;
+  font-size: 0.9rem;
+  margin: 0.5rem 0 0;
+}
+
+.feedback-form--success h2 {
+  color: var(--green-700);
+}
+
 .empty {
   text-align: center;
   color: #616161;

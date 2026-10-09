@@ -10,8 +10,6 @@ import {
   type SessionKind,
 } from "../data/sessionDetails";
 import SuggestChangeForm from "./SuggestChangeForm";
-import { buildSessionsMailto } from "../utils/mailto";
-import { SESSIONS_CONTACT_EMAIL } from "../config";
 import {
   countActiveFilters,
   DEFAULT_FILTERS,
@@ -288,7 +286,7 @@ export default function SessionList() {
 
       <p className="results-count">
         {filtered.length} session{filtered.length === 1 ? "" : "s"} ·{" "}
-        <a href={buildSessionsMailto({ to: SESSIONS_CONTACT_EMAIL })}>Email a correction</a>
+        <a href="#feedback">Send a correction</a>
       </p>
 
       {groups.length === 0 ? (

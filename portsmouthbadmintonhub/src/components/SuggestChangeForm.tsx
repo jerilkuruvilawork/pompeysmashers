@@ -1,24 +1,55 @@
 import { useState, type FormEvent } from "react";
-import { SESSIONS_CONTACT_EMAIL } from "../config";
-import { buildSessionsMailto } from "../utils/mailto";
+import { submitCorrection } from "../utils/submitCorrection";
 
 type Props = {
   sessionName?: string;
   compact?: boolean;
 };
 
+type Status = "idle" | "sending" | "success" | "error";
+
 export default function SuggestChangeForm({ sessionName, compact }: Props) {
   const [details, setDetails] = useState("");
   const [reporterEmail, setReporterEmail] = useState("");
+  const [status, setStatus] = useState<Status>("idle");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    window.location.href = buildSessionsMailto({
-      to: SESSIONS_CONTACT_EMAIL,
+    setStatus("sending");
+    setErrorMessage("");
+
+    const result = await submitCorrection({
+      message: details,
       sessionName,
-      details,
       reporterEmail,
     });
+
+    if (result.ok) {
+      setStatus("success");
+      setDetails("");
+      setReporterEmail("");
+      return;
+    }
+
+    setStatus("error");
+    setErrorMessage(result.error);
+  }
+
+  if (status === "success") {
+    return (
+      <div className="feedback-form feedback-form--success" role="status">
+        <h2>Thanks — we got your message</h2>
+        <p>We’ll review the session listing and update the site when we can.</p>
+        <button
+          type="button"
+          className="btn btn--ghost btn--sm"
+          onClick={() => setStatus("idle")}
+        >
+          Send another correction
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -27,9 +58,8 @@ export default function SuggestChangeForm({ sessionName, compact }: Props) {
         <>
           <h2>Send a correction or new session</h2>
           <p className="feedback-form__intro">
-            Opens your email app with a draft to{" "}
-            <a href={`mailto:${SESSIONS_CONTACT_EMAIL}`}>{SESSIONS_CONTACT_EMAIL}</a>. No login
-            required.
+            Submit the form below. Your message goes to the site maintainer only — their email is
+            not shown on this page.
           </p>
         </>
       )}
@@ -48,19 +78,27 @@ export default function SuggestChangeForm({ sessionName, compact }: Props) {
         value={details}
         onChange={(e) => setDetails(e.target.value)}
         placeholder="e.g. Plastic shuttles, £6, now 7:30pm…"
+        disabled={status === "sending"}
       />
 
-      <label htmlFor="corr-email">Your email (optional)</label>
+      <label htmlFor="corr-email">Your email (optional, if you want a reply)</label>
       <input
         id="corr-email"
         type="email"
         value={reporterEmail}
         onChange={(e) => setReporterEmail(e.target.value)}
         placeholder="you@example.com"
+        disabled={status === "sending"}
       />
 
-      <button type="submit" className="btn btn--primary">
-        Open email to send
+      {status === "error" && (
+        <p className="feedback-form__error" role="alert">
+          {errorMessage}
+        </p>
+      )}
+
+      <button type="submit" className="btn btn--primary" disabled={status === "sending"}>
+        {status === "sending" ? "Sending…" : "Send correction"}
       </button>
     </form>
   );

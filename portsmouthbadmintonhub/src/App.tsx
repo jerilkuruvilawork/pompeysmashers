@@ -1,5 +1,5 @@
 import SessionList from "./components/SessionList";
-import { SESSIONS_CONTACT_EMAIL, SITE_NAME, SITE_TAGLINE } from "./config";
+import { SITE_NAME, SITE_TAGLINE } from "./config";
 
 export default function App() {
   return (
@@ -16,8 +16,8 @@ export default function App() {
           you travel — times and prices change too.
         </p>
         <p className="hero__contact">
-          Wrong info?{" "}
-          <a href={`mailto:${SESSIONS_CONTACT_EMAIL}`}>{SESSIONS_CONTACT_EMAIL}</a>
+          Wrong info? Use <a href="#feedback">Suggest an edit</a> or the form at the bottom of the
+          page.
         </p>
       </header>
 
