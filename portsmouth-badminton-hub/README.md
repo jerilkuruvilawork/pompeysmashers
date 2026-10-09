@@ -2,7 +2,9 @@
 
 Community directory of pay-and-play and social badminton sessions around Portsmouth (~25 miles).
 
-**Live site:** [https://jerilkuruvilawork.github.io/portsmouth-badminton-hub](https://jerilkuruvilawork.github.io/portsmouth-badminton-hub)
+**Live site (now):** [https://jerilkuruvilawork.github.io/pompeysmashers/portsmouth-badminton-hub/](https://jerilkuruvilawork.github.io/pompeysmashers/portsmouth-badminton-hub/)
+
+**Optional dedicated URL:** create repo `portsmouth-badminton-hub` on GitHub and push this folder — then use [https://jerilkuruvilawork.github.io/portsmouth-badminton-hub/](https://jerilkuruvilawork.github.io/portsmouth-badminton-hub/)
 
 ## Run locally
 
