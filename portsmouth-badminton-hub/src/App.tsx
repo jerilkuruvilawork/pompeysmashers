@@ -11,9 +11,8 @@ export default function App() {
         <h1>{SITE_NAME}</h1>
         <p className="hero__tagline">{SITE_TAGLINE}</p>
         <p className="hero__note">
-          Turn-up-and-play and social sessions — especially improver and intermediate friendly.
-          Times change; confirm with each club. Shuttle type is rarely published; ask before you
-          travel.
+          Filter by area, player level, shuttles (plastic / feather / No Strings), session type, and
+          format. Times change — confirm with each club before you travel.
         </p>
         <p className="hero__contact">
           Wrong info?{" "}

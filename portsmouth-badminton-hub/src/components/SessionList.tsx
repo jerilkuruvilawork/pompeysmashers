@@ -1,40 +1,58 @@
 import { useMemo, useState } from "react";
+import { DAY_ORDER, SHUTTLE_LABELS } from "../data/sessions";
 import {
-  badmintonSessions,
-  DAY_ORDER,
-  SHUTTLE_LABELS,
-  type DayOfWeek,
-  type ShuttleType,
-} from "../data/sessions";
+  AREA_ORDER,
+  getEnrichedSessions,
+  PLAYER_LEVEL_LABELS,
+  PLAY_FORMAT_LABELS,
+  SESSION_KIND_LABELS,
+  type EnrichedSession,
+  type SessionKind,
+} from "../data/sessionDetails";
 import SuggestChangeForm from "./SuggestChangeForm";
 import { buildSessionsMailto } from "../utils/mailto";
 import { SESSIONS_CONTACT_EMAIL } from "../config";
-
-const ALL_DAYS = "All days" as const;
-
-function shuttleMatches(filter: ShuttleType | "all", sessionShuttle: ShuttleType): boolean {
-  if (filter === "all") return true;
-  if (filter === "plastic") {
-    return sessionShuttle === "plastic" || sessionShuttle === "no-strings";
-  }
-  return sessionShuttle === filter;
-}
+import {
+  countActiveFilters,
+  DEFAULT_FILTERS,
+  filterSessions,
+  type GroupBy,
+  type SessionFilters,
+} from "../utils/sessionFilters";
 
 function SessionCard({
   session,
   onSuggest,
 }: {
-  session: (typeof badmintonSessions)[number];
+  session: EnrichedSession;
   onSuggest: (name: string) => void;
 }) {
   return (
     <article className={`session-card${session.unconfirmed ? " session-card--warn" : ""}`}>
       <header className="session-card__header">
         <h3>{session.name}</h3>
+        <span className="area-badge">{session.area}</span>
+      </header>
+      <div className="session-card__tags">
         <span className={`shuttle-badge shuttle-badge--${session.shuttle}`}>
           {SHUTTLE_LABELS[session.shuttle]}
         </span>
-      </header>
+        {session.playerLevels.map((level) => (
+          <span key={level} className="tag tag--level">
+            {PLAYER_LEVEL_LABELS[level]}
+          </span>
+        ))}
+        {session.kinds.map((kind) => (
+          <span key={kind} className="tag tag--kind">
+            {SESSION_KIND_LABELS[kind]}
+          </span>
+        ))}
+        {session.formats.map((format) => (
+          <span key={format} className="tag tag--format">
+            {PLAY_FORMAT_LABELS[format]}
+          </span>
+        ))}
+      </div>
       <p className="session-card__time">{session.time}</p>
       <p className="session-card__venue">
         {session.venue}
@@ -43,7 +61,7 @@ function SessionCard({
       </p>
       <dl className="session-card__meta">
         <div>
-          <dt>Level</dt>
+          <dt>Level (club says)</dt>
           <dd>{session.level}</dd>
         </div>
         {session.price && (
@@ -54,6 +72,9 @@ function SessionCard({
         )}
       </dl>
       {session.shuttleNote && <p className="session-card__shuttle-note">{session.shuttleNote}</p>}
+      {session.excludesBeginners && (
+        <p className="session-card__warn">Not aimed at beginners — check before you go.</p>
+      )}
       {(session.contact || session.phone || session.email) && (
         <p className="session-card__contact">
           {session.contact && <span>{session.contact} </span>}
@@ -79,35 +100,46 @@ function SessionCard({
 }
 
 export default function SessionList() {
-  const [dayFilter, setDayFilter] = useState<DayOfWeek | typeof ALL_DAYS>(ALL_DAYS);
-  const [shuttleFilter, setShuttleFilter] = useState<ShuttleType | "all">("all");
-  const [query, setQuery] = useState("");
+  const sessions = useMemo(() => getEnrichedSessions(), []);
+  const [filters, setFilters] = useState<SessionFilters>(DEFAULT_FILTERS);
+  const [groupBy, setGroupBy] = useState<GroupBy>("day");
   const [suggestFor, setSuggestFor] = useState<string | undefined>();
   const [showForm, setShowForm] = useState(false);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return badmintonSessions.filter((s) => {
-      if (dayFilter !== ALL_DAYS && !s.days.includes(dayFilter)) return false;
-      if (!shuttleMatches(shuttleFilter, s.shuttle)) return false;
-      if (!q) return true;
-      const blob = [s.name, s.venue, s.address, s.level, s.notes].filter(Boolean).join(" ").toLowerCase();
-      return blob.includes(q);
-    });
-  }, [dayFilter, shuttleFilter, query]);
+  const filtered = useMemo(() => filterSessions(sessions, filters), [sessions, filters]);
 
-  const grouped = useMemo(() => {
-    const map = new Map<DayOfWeek, typeof filtered>();
+  const groupedByDay = useMemo(() => {
+    const map = new Map<(typeof DAY_ORDER)[number], EnrichedSession[]>();
     for (const day of DAY_ORDER) map.set(day, []);
     for (const session of filtered) {
       for (const day of session.days) {
         map.get(day)?.push(session);
       }
     }
-    return DAY_ORDER.map((day) => ({ day, sessions: map.get(day) ?? [] })).filter(
+    return DAY_ORDER.map((day) => ({ key: day, label: day, sessions: map.get(day) ?? [] })).filter(
       (g) => g.sessions.length > 0,
     );
   }, [filtered]);
+
+  const groupedByArea = useMemo(() => {
+    const map = new Map<(typeof AREA_ORDER)[number], EnrichedSession[]>();
+    for (const area of AREA_ORDER) map.set(area, []);
+    for (const session of filtered) {
+      map.get(session.area)?.push(session);
+    }
+    return AREA_ORDER.map((area) => ({
+      key: area,
+      label: area,
+      sessions: map.get(area) ?? [],
+    })).filter((g) => g.sessions.length > 0);
+  }, [filtered]);
+
+  const groups = groupBy === "day" ? groupedByDay : groupedByArea;
+  const activeFilterCount = countActiveFilters(filters);
+
+  function patchFilters(partial: Partial<SessionFilters>) {
+    setFilters((prev) => ({ ...prev, ...partial }));
+  }
 
   function openFeedback(name?: string) {
     setSuggestFor(name);
@@ -120,58 +152,155 @@ export default function SessionList() {
   return (
     <>
       <section className="filters" aria-label="Filter sessions">
-        <label>
-          Day
-          <select
-            value={dayFilter}
-            onChange={(e) => setDayFilter(e.target.value as DayOfWeek | typeof ALL_DAYS)}
-          >
-            <option value={ALL_DAYS}>{ALL_DAYS}</option>
-            {DAY_ORDER.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Shuttles
-          <select
-            value={shuttleFilter}
-            onChange={(e) => setShuttleFilter(e.target.value as ShuttleType | "all")}
-          >
-            <option value="all">All</option>
-            <option value="plastic">Plastic &amp; No Strings</option>
-            <option value="feather">Feather only</option>
-            <option value="unknown">Not stated</option>
-          </select>
-        </label>
-        <label className="filters__search">
-          Search
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Venue, town, club…"
-          />
-        </label>
+        <div className="filters__grid">
+          <label>
+            Area
+            <select
+              value={filters.area}
+              onChange={(e) =>
+                patchFilters({ area: e.target.value as SessionFilters["area"] })
+              }
+            >
+              <option value="all">All areas</option>
+              {AREA_ORDER.map((area) => (
+                <option key={area} value={area}>
+                  {area}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            Player level
+            <select
+              value={filters.playerLevel}
+              onChange={(e) =>
+                patchFilters({
+                  playerLevel: e.target.value as SessionFilters["playerLevel"],
+                })
+              }
+            >
+              <option value="all">Any level</option>
+              <option value="beginner">Beginner</option>
+              <option value="improver-intermediate">Improver / intermediate</option>
+              <option value="advanced">Advanced</option>
+              <option value="league">League / strong club</option>
+            </select>
+          </label>
+
+          <label>
+            Shuttles
+            <select
+              value={filters.shuttle}
+              onChange={(e) =>
+                patchFilters({ shuttle: e.target.value as SessionFilters["shuttle"] })
+              }
+            >
+              <option value="all">Any</option>
+              <option value="plastic">Plastic (confirmed)</option>
+              <option value="no-strings">No Strings sessions</option>
+              <option value="feather">Feather (confirmed)</option>
+              <option value="not-stated">Not stated — ask club</option>
+            </select>
+          </label>
+
+          <label>
+            Session type
+            <select
+              value={filters.sessionKind}
+              onChange={(e) =>
+                patchFilters({
+                  sessionKind: e.target.value as SessionKind | "all",
+                })
+              }
+            >
+              <option value="all">Any type</option>
+              {(Object.keys(SESSION_KIND_LABELS) as SessionKind[]).map((kind) => (
+                <option key={kind} value={kind}>
+                  {SESSION_KIND_LABELS[kind]}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            Format
+            <select
+              value={filters.format}
+              onChange={(e) =>
+                patchFilters({ format: e.target.value as SessionFilters["format"] })
+              }
+            >
+              <option value="all">Any format</option>
+              <option value="doubles">Doubles</option>
+              <option value="mixed">Mixed doubles</option>
+              <option value="singles">Singles</option>
+            </select>
+          </label>
+
+          <label>
+            Day
+            <select
+              value={filters.day}
+              onChange={(e) =>
+                patchFilters({ day: e.target.value as SessionFilters["day"] })
+              }
+            >
+              <option value="all">Any day</option>
+              {DAY_ORDER.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="filters__search">
+            Search
+            <input
+              type="search"
+              value={filters.query}
+              onChange={(e) => patchFilters({ query: e.target.value })}
+              placeholder="Club, venue, postcode…"
+            />
+          </label>
+        </div>
+
+        <div className="filters__toolbar">
+          <label className="filters__group">
+            Group by
+            <select value={groupBy} onChange={(e) => setGroupBy(e.target.value as GroupBy)}>
+              <option value="day">Day of week</option>
+              <option value="area">Area / town</option>
+            </select>
+          </label>
+          {activeFilterCount > 0 && (
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              onClick={() => setFilters(DEFAULT_FILTERS)}
+            >
+              Clear filters ({activeFilterCount})
+            </button>
+          )}
+        </div>
       </section>
 
       <p className="results-count">
-        {filtered.length} listing{filtered.length === 1 ? "" : "s"} ·{" "}
+        {filtered.length} session{filtered.length === 1 ? "" : "s"} ·{" "}
         <a href={buildSessionsMailto({ to: SESSIONS_CONTACT_EMAIL })}>Email a correction</a>
       </p>
 
-      {grouped.length === 0 ? (
-        <p className="empty">No sessions match your filters.</p>
+      {groups.length === 0 ? (
+        <p className="empty">No sessions match your filters. Try clearing one or two filters.</p>
       ) : (
-        grouped.map(({ day, sessions }) => (
-          <section key={day} className="day-group">
-            <h2>{day}</h2>
+        groups.map(({ key, label, sessions: groupSessions }) => (
+          <section key={key} className="day-group">
+            <h2>{label}</h2>
             <div className="session-grid">
-              {sessions.map((session) => (
+              {groupSessions.map((session) => (
                 <SessionCard
-                  key={`${day}-${session.id}`}
+                  key={`${key}-${session.id}`}
                   session={session}
                   onSuggest={openFeedback}
                 />
