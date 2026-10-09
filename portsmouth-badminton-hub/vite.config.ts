@@ -3,6 +3,6 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: process.env.VITE_SITE_BASE ?? '/portsmouth-badminton-hub/',
+  base: process.env.VITE_SITE_BASE ?? '/portsmouthbadmintonhub/',
   plugins: [react()],
 })
